@@ -9,6 +9,8 @@ import FormattedDate from '../../components/FormattedDate.astro';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const [featuredPost, ...otherPosts] = posts;
 ---
 
 <!doctype html>
@@ -17,70 +19,103 @@ const posts = (await getCollection('blog')).sort(
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
 			main {
-				width: 960px;
+				width: 1200px;
+				max-width: calc(100% - 2em);
+				margin: 0 auto;
+				padding: 3em 1em;
 			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
+			.featured-post {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
 				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
+				margin-bottom: 3rem;
+				padding: 1.5rem;
+				background: white;
 				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
 				box-shadow: var(--box-shadow);
 			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
+			.featured-post img {
+				width: 100%;
+				height: 400px;
+				object-fit: cover;
+				margin: 0;
+			}
+			.featured-content {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+			}
+			.featured-content .title {
+				font-size: 2rem;
+				margin: 0 0 0.5rem 0;
+				color: rgb(var(--black));
+			}
+			.featured-content .date {
+				color: rgb(var(--gray));
+				margin-bottom: 0.5rem;
+			}
+			.featured-content .description {
+				font-size: 1.1rem;
+				line-height: 1.5;
+				color: rgb(var(--gray-dark));
+				margin: 0;
+			}
+			.post-grid {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 1.5rem;
+			}
+			.post-card {
+				background: white;
+				border-radius: 12px;
+				overflow: hidden;
+				box-shadow: var(--box-shadow);
+				transition: transform 0.2s ease;
+			}
+			.post-card:hover {
+				transform: translateY(-4px);
+			}
+			.post-card img {
+				width: 100%;
+				height: 200px;
+				object-fit: cover;
+			}
+			.post-card-content {
+				padding: 1rem;
+			}
+			.post-card .title {
+				font-size: 1.25rem;
+				margin: 0 0 0.25rem 0;
+				color: rgb(var(--black));
+			}
+			.post-card .date {
+				font-size: 0.9rem;
+				color: rgb(var(--gray));
+				margin-bottom: 0.25rem;
+			}
+			.post-card .description {
+				font-size: 0.95rem;
+				color: rgb(var(--gray-dark));
+				line-height: 1.4;
+				margin: 0;
+			}
+			a {
+				text-decoration: none;
+			}
+			@media (max-width: 1200px) {
+				.post-grid {
+					grid-template-columns: repeat(2, 1fr);
 				}
-				ul li {
-					width: 100%;
-					text-align: center;
+			}
+			@media (max-width: 768px) {
+				.featured-post {
+					grid-template-columns: 1fr;
 				}
-				ul li:first-child {
-					margin-bottom: 0;
+				.featured-post img {
+					height: 300px;
 				}
-				ul li:first-child .title {
-					font-size: 1.563em;
+				.post-grid {
+					grid-template-columns: 1fr;
 				}
 			}
 		</style>
@@ -89,21 +124,33 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<section>
-				<ul>
+				<a href={`/blog/${featuredPost.slug}/`} class="featured-post">
+					<img width={720} height={400} src={featuredPost.data.heroImage} alt="" />
+					<div class="featured-content">
+						<h2 class="title">{featuredPost.data.title}</h2>
+						<p class="date">
+							<FormattedDate date={featuredPost.data.pubDate} />
+						</p>
+						<p class="description">{featuredPost.data.description}</p>
+					</div>
+				</a>
+
+				<div class="post-grid">
 					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.slug}/`}>
-									<img width={720} height={360} src={post.data.heroImage} alt="" />
-									<h4 class="title">{post.data.title}</h4>
+						otherPosts.map((post) => (
+							<a href={`/blog/${post.slug}/`} class="post-card">
+								<img width={720} height={360} src={post.data.heroImage} alt="" />
+								<div class="post-card-content">
+									<h3 class="title">{post.data.title}</h3>
 									<p class="date">
 										<FormattedDate date={post.data.pubDate} />
 									</p>
-								</a>
-							</li>
+									<p class="description">{post.data.description}</p>
+								</div>
+							</a>
 						))
 					}
-				</ul>
+				</div>
 			</section>
 		</main>
 		<Footer />
